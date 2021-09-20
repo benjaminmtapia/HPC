@@ -1,81 +1,78 @@
-# include <stdio.h>
-# include <stdlib.h>
-# include <string.h>
-# include <ctype.h>
-# include <unistd.h>
-# include <pmmintrin.h>
-# include <immintrin.h>
-# include <math.h>
+#include "functions.h"
+#include <math.h>
 # define MPI 3.14159265358979323846
 
-int* readFile(char* fileName, int N){
-    FILE* f = fopen(fileName,"r");
-    if(f==NULL){
-        printf("error al abrir archivo\n");
-        exit(1);
+
+int* getDistances(float deltaR,int R){
+    int* distances = (int*)malloc(sizeof(int)*R);
+    for(int i = 0; i < R; i++){
+        distances[i] = i* deltaR;
     }
-    int imageDim = N*N;
-    int index = 0;
-
-    int* image = (int*)malloc(sizeof(int)*imageDim);
-    fread(image,sizeof(float),imageDim,f);
-
-    fclose(f);
-    return image;
+    return distances;
+}
+int* getAngles(float deltaTheta,int M){
+    int* angles = (int*)malloc(sizeof(int)*M);
+    for(int i = 0; i < M; i++){
+        angles[i] = i* deltaTheta;
+    }
+    return angles;
 }
 
-int** imageToMatrix(int* image, int N){
-    int** imageOut= (int**)malloc(sizeof(int)*N);
-    int index = 0;
-    for(int i = 0; i < N; i++ ){
-        imageOut[i] = (int*)malloc(sizeof(int)*N);
-        for (int j = 0; j < N; j++)
-        {
-            imageOut[i][j] = image[index];
-            index++;
+int** umbralization(int** houghMatrix, int M, int R, int U){
+
+    for(int i = 0; i < M; i++){
+        for(int j = 0; j < R; j++){
+            if(houghMatrix[i][j]>U){
+                houghMatrix[i][j] = 255;
+            }
+            else{
+                houghMatrix[i][j] = 0;
+            }
         }
-        
     }
-    return imageOut;
+    return houghMatrix;
 }
 
-void writeOut(int** image, int N, char* fileName){
-    FILE* fileOut = fopen(fileName,"wb");
-    for(int i = 0; i < N; i++ ){
-        
-        for (int j = 0; j < N; j++)
-        {
-            int aux = image[i][j];
-            fwrite(&aux,sizeof(int),1,fileOut);
-        }
-        
-    }
-}
-
-int** sequentialHough (int** image, int N, int M, int R){
+int** sequentialHough (int** image, int N, int M, int R, int U){
 
     int** houghMatrix = (int**)malloc(sizeof(int*)*M);
     for(int k = 0; k < M; k++){
         houghMatrix[k] = (int*)malloc(sizeof(int)*R);
+        for(int l =0; l<R;l++){
+            houghMatrix[k][l] = 0;
+        }
     }
-    float deltaTheta = MPI/M;
-    float deltaR = N*(sqrt(2)) / (2*R);
+    float deltaTheta = 180/M;
+    //float deltaR = N*sqrt(2)/(2*R);
+    //int* distances = getDistances(deltaR,R);
+    int* angles = getAngles(deltaTheta,M);
 
 
     for(int i = 0 ; i < N; i++){
         for(int j = 0; j < N; j++){
+            //if is edge
             if(image[i][j]!=0){
-
+                //for each theta
+                for(int k = 0; k < M; k++){
+                    int theta = (angles[k]*MPI)/180;
+                    int r = i*cos(theta) + j * sin(theta);
+                    //int index = getRindex(distances, R, r);
+                       houghMatrix[k][r] = houghMatrix[k][r]+1;
+                    
+                }
             }
         }
     }
+
+    houghMatrix = umbralization(houghMatrix,M,R,U);
+    return houghMatrix;
 
 }
 int main(int argc, char** argv){
 
     int N;
-    char* fileIn;
-    char* fileOut;
+    char* Infile;
+    char* Outfile;
     int T;
     int R;
     int U;
@@ -85,11 +82,11 @@ int main(int argc, char** argv){
         switch (c)
         {
         case 'i':
-            fileIn = optarg;
+            Infile = optarg;
             break;
 
         case 'o':
-            fileOut = optarg;
+            Outfile = optarg;
             break;
 
         case 'N':
@@ -113,22 +110,13 @@ int main(int argc, char** argv){
 
 
     int* image;
-    image =readFile(fileIn, N);
+    image =readFile(Infile, N);
     int ** imageMatrix;
     imageMatrix = imageToMatrix(image, N);
-    writeOut(imageMatrix,N,fileOut);
-    /*
-    prueba para ver si la imagen fue leida correctamente
-    FILE* out = fopen(fileOut,"wb");
-    fwrite(image,sizeof(float),N*N,out);
-
-    */
-   int imgSize = N*N;
     
-
    int** seqHough;
-   seqHough = sequentialHough(imageMatrix,N,T,R);
-
+   seqHough = sequentialHough(imageMatrix,N,T,R,U);
+   writeOut(seqHough,T,R,Outfile);
 
     return 0;
 
