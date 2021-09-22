@@ -6,8 +6,8 @@
 # include <pmmintrin.h>
 # include <immintrin.h>
 
-int* readFile(char* fileName, int N);
+int* readFile(char* fileName, int M, int N);
 void printmatrix(int** matrix, int M, int R);
 void writeOut(int** image, int M, int R, char* fileName);
-int getRindex(int*distances, int R, int r);
-int** imageToMatrix(int* image, int N);
+int getRindex(float*distances, int R, int r);
+int** imageToMatrix(int* image,int M, int N);
