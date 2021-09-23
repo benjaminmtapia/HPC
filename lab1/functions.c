@@ -62,3 +62,44 @@ int getRindex(float*distances, int R, int r){
     return index;
 
 }
+
+float* getDistances(float deltaR,int R){
+    float* distances = (float*)malloc(sizeof(float)*R);
+    for(int i = 0; i < R; i++){
+        distances[i] = i* deltaR;
+    }
+    return distances;
+}
+float* getAngles(float deltaTheta,int M){
+    float* angles = (float*)malloc(sizeof(float)*M);
+    for(int i = 0; i < M; i++){
+        angles[i] = i* deltaTheta;
+    }
+    return angles;
+}
+
+int** umbralization(int** houghMatrix, int M, int R, int U){
+
+    for(int i = 0; i < M; i++){
+        for(int j = 0; j < R; j++){
+            if(houghMatrix[i][j]>U){
+                houghMatrix[i][j] = 255;
+            }
+            else{
+                houghMatrix[i][j] = 0;
+            }
+        }
+    }
+    return houghMatrix;
+}
+
+int** houghMatrix(int M, int N){
+    int** houghMatrix = (int**)malloc(sizeof(int*)*M);
+    for(int i = 0; i < M; i++){
+        houghMatrix[i] = (int*)malloc(sizeof(int)*N);
+        for(int j =0; j<N;j++){
+            houghMatrix[i][j] = 0;
+        }
+    }
+    return houghMatrix;
+}
