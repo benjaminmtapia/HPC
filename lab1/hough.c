@@ -2,79 +2,62 @@
 #include <math.h>
 #include <immintrin.h>
 
-__m256d _ZGVdN4v_cos(__m256d x);                    
-__m256d _ZGVdN4v_exp(__m256d x);                    
-__m256d _ZGVdN4v_log(__m256d x);                    
-__m256d _ZGVdN4v_sin(__m256d x);                    
-__m256d _ZGVdN4vv_pow(__m256d x, __m256d y); 
-void    _ZGVdN4vvv_sincos(__m256d x, __m256i ptrs, __m256i ptrc);
+/*
+Entradas: matriz con la imagen, matriz de hough a llenar, dimensiones M Y N de la imagen
+          dimensiones T y R de la matriz de hough, arreglo flotante con ángulos, delta R
+Procesamiento: Se crean los distintos registros necesarios. Al momento de aplicar el algoritmo se utilizan registros con
+                las posiciones, con los cosenos y senos, y también para resultados parciales, lo cual se almacena finalmente
+                en un registro y con ese indice se accede a la matriz de hough
+Salida: Matriz de Hough con los valores resultantes.
 
-__m256  _ZGVdN8v_cosf(__m256 x);            
-__m256  _ZGVdN8v_expf(__m256 x);            
-__m256  _ZGVdN8v_logf(__m256 x);            
-__m256  _ZGVdN8v_sinf(__m256 x);            
-__m256  _ZGVdN8vv_powf(__m256 x, __m256 y); 
-void    _ZGVdN8vvv_sincosf(__m256 x, __m256i ptrs_lo, __m256i ptrs_hi, __m256i ptrc_lo, __m256i ptrc_hi);
-
-int mm256_print_pd(__m256d x);
-int mm256_print_ps(__m256 x);
-
-__attribute__ ((noinline)) int mm256_print_pd(__m256d x){
-    double vec_x[4];
-    _mm256_storeu_pd(vec_x,x);
-    printf("%12.8f %12.8f %12.8f %12.8f  \n", vec_x[3], vec_x[2], vec_x[1], vec_x[0]);
-    return 0;
-}
-
-void loadRegisterPositions(int X, int Y, __m128* posX, __m128* posY){
-
-}
-
+*/
 int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, float* angles, float deltaR){
-    __m256d posX, posY, theta, mcos, msin, icos, jsin, rDelta, rdistance, rindex;
-    //posY = _mm256_set_pd(M_PI/2, 1.5, 1.0, 0.5);
-    
-    double* angulos = (double*)malloc(sizeof(double)*T);
-    //z =_ZGVdN4v_cos(x);        printf("cos(x)        "); mm256_print_pd(z);
+    __m128 posX, posY, mcos, msin, icos, jsin, rDelta, rdistance, rindex, rCenter;
+    float center = R/2;
+    rCenter = _mm_set1_ps(center);
+
+    float* angulos = (float*)malloc(sizeof(float)*T);
     for(int i = 0; i<T; i++){
         angulos[i] = angles[i];
     }
-    rDelta = _mm256_set1_pd((double) deltaR);
-    double* positions = (double*)malloc(sizeof(double)*4);
+    rDelta = _mm_set1_ps((float) deltaR);
+    float* positions = (float*)malloc(sizeof(float)*4);
     int* auxIndex = (int*) malloc(sizeof(int)*4);
+
     for(int x = 0; x < M ; x++){
         for(int y = 0; y < N; y++){
             //if is edge
             if(image[x][y]!=0){
-                double u = (double) x;
-                double v = (double) y;
-                posX = _mm256_set_pd(u,u,u,u);
-                posY = _mm256_set_pd(v,v,v,v);
+                float u = (float) x;
+                float v = (float) y;
+                posX = _mm_set1_ps(u);
+                posY = _mm_set1_ps(v);
                 //cargar los registros de posicion
 
                 for(int i = 0; i < T; i+=4){
-                    theta = _mm256_set_pd(angulos[i],angulos[i+1],angulos[i+2],angles[i+3]);
-                    //mm256_print_pd(theta);
-                    mcos = _ZGVdN4v_cos(theta);
-                    
-                    msin = _ZGVdN4v_sin(theta);
-                    icos = _mm256_mul_pd(mcos,posX);
-                    jsin = _mm256_mul_pd(msin,posY);
-                    rdistance = _mm256_add_pd(icos,jsin);
-                    rindex = _mm256_div_pd(rdistance,rDelta);
-                    _mm256_store_pd(positions,rindex);
+                    mcos = _mm_set_ps(cos(angles[i]),cos(angles[i+1]),cos(angles[i+2]),cos(angles[i+3]));
+                    msin = _mm_set_ps(sin(angles[i]),sin(angles[i+1]),sin(angles[i+2]),sin(angles[i+3]));
+                    icos = _mm_mul_ps(mcos,posX);
+                    jsin = _mm_mul_ps(msin,posY);
+                    rdistance = _mm_add_ps(icos,jsin);
+                    rindex = _mm_div_ps(rdistance,rDelta);
+                    rCenter = _mm_add_ps(rCenter,rindex);
+
+                    _mm_store_ps(positions,rindex);
+
+                   
                     auxIndex[0] = (int)positions[0];
                     auxIndex[1] = (int)positions[1];
                     auxIndex[2] = (int)positions[2];
                     auxIndex[3] = (int)positions[3];
-                    //printf("%lf %lf %lf %lf \n",positions[0],positions[1],positions[2],positions[3]);
+                     printf("%d %d %d %d", auxIndex[0],auxIndex[1],auxIndex[2], auxIndex[3]);
+                    
                     houghMatrix[i][auxIndex[0]]+=1;
                     houghMatrix[i+1][auxIndex[1]]+=1;
                     houghMatrix[i+2][auxIndex[2]]+=1;
                     houghMatrix[i+3][auxIndex[3]]+=1;
                     
                 }
-                //printf("cos(x): %lf    ", mcos); 
             }
         }
 
@@ -83,6 +66,14 @@ int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, flo
     return houghMatrix;
 }
 
+
+/*
+Entradas: matriz con la imagen, matriz de hough a llenar, dimensiones M Y N de la imagen
+          dimensiones T y R de la matriz de hough, arreglo flotante con ángulos, delta R
+Procesamiento: Aplica el algoritmo de hough de manera secuencial
+Salida: Matriz de Hough con los valores resultantes.
+
+*/
 int** sequentialHough (int** image, int**houghMatrix, int M, int N,int T,int R, float* angles, float deltaR){
 
     for(int x = 0; x < M ; x++){
@@ -93,13 +84,13 @@ int** sequentialHough (int** image, int**houghMatrix, int M, int N,int T,int R, 
                 for(int i = 0; i < T; i++){
                     float theta = angles[i];
                     float r = x* cos(theta) + y* sin(theta);
-                    int j = r/deltaR;
-                    //if(j<R)
+                    int j = (r/deltaR);
+                    //printf("%d ", j);
                     houghMatrix[i][j]+=1;
                 }
+                printf("\n");
             }
         }
-
     }
     return houghMatrix;
 
@@ -166,6 +157,7 @@ int main(int argc, char** argv){
     seqHough = parallelHough(imageMatrix,seqHough,M,N,T,R,angles,deltaR);
     seqHough = umbralization(seqHough,T,R,U);
     writeOut(seqHough,T,R,Outfile);
+
 
     return 0;
 

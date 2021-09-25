@@ -1,5 +1,10 @@
 #include "functions.h"
 
+/*
+Entradas: Nombre de la imagen, dimensiones que reciben por consola
+Procesamiento: Se lee la imagen con fread y se almacena la data en un arreglo
+Salida: Arreglo con información de la imagen en enteros
+*/
 int* readFile(char* fileName, int M, int N){
     FILE* f = fopen(fileName,"r");
     if(f==NULL){
@@ -15,14 +20,13 @@ int* readFile(char* fileName, int M, int N){
     fclose(f);
     return image;
 }
-void printmatrix(int** matrix, int M, int R){
-    for(int i = 0; i < M; i++){
-        for(int j = 0 ; j < R; j++){
-            printf("%d ",matrix[i][j]);
-        }
-        printf("\n");
-    }
-}
+
+/*
+Entradas: arreglo con la imagen, dimensiones M Y N de la imagen
+Procesamiento: se toma el arreglo de la imagen y se convierte a una matriz
+Salida: Matriz con los pixeles de la imagen
+
+*/
 int** imageToMatrix(int* image, int M, int N){
     int** imageOut= (int**)malloc(sizeof(int)*M);
     int index = 0;
@@ -38,38 +42,28 @@ int** imageToMatrix(int* image, int M, int N){
     return imageOut;
 }
 
-void writeOut(int** image, int M, int R, char* fileName){
+/*
+Entradas: matriz imagen, dimensiones T y R de Hough, nombre de archivo de salida
+Procesamiento: escribe la matriz de hough 
+Salida: No hay salidas
+*/
+void writeOut(int** image, int T, int R, char* fileName){
     FILE* fileOut = fopen(fileName,"wb");
     //printmatrix(image,M,R);
-    for(int i = 0; i < M; i++ ){
+    for(int i = 0; i < T; i++ ){
         for(int j = 0; j < R; j++){
             int aux = image[i][j] ? 255:0;
             fwrite(&aux,1,sizeof(int),fileOut);    
         }
     }
-
-    //fwrite(out,sizeof(int),M*R,fileOut);
+    fclose(fileOut);
 }
 
-int getRindex(float*distances, int R, int r){
-    int index = -1;
-    for(int i = 0 ; i < R; i++){
-        if(r == distances[i]){
-            index = i;
-            break;
-        }
-    }
-    return index;
-
-}
-
-float* getDistances(float deltaR,int R){
-    float* distances = (float*)malloc(sizeof(float)*R);
-    for(int i = 0; i < R; i++){
-        distances[i] = i* deltaR;
-    }
-    return distances;
-}
+/*
+Entradas: delta Theta, cantidad de angulos M
+Procesamiento: crea los distintos angulos con la discretización del espacio
+Salida: arreglo flotante con los angulos a evaluar
+*/
 float* getAngles(float deltaTheta,int M){
     float* angles = (float*)malloc(sizeof(float)*M);
     for(int i = 0; i < M; i++){
@@ -78,9 +72,14 @@ float* getAngles(float deltaTheta,int M){
     return angles;
 }
 
-int** umbralization(int** houghMatrix, int M, int R, int U){
+/*
+Entradas: matriz hough, dimensiones T y R de Hough, Umbral U
+Procesamiento: Aplica la umbralización para la matriz de hough dejando solo pixeles blancos y negros
+Salida: Matriz de hough con umbralización
+*/
+int** umbralization(int** houghMatrix, int T, int R, int U){
 
-    for(int i = 0; i < M; i++){
+    for(int i = 0; i < T; i++){
         for(int j = 0; j < R; j++){
             if(houghMatrix[i][j]>U){
                 houghMatrix[i][j] = 255;
@@ -93,6 +92,11 @@ int** umbralization(int** houghMatrix, int M, int R, int U){
     return houghMatrix;
 }
 
+/*
+Entradas: dimensiones M y N
+Procesamiento: crea una matriz con las dimensiones especificadas
+Salida: matriz de hough
+*/
 int** houghMatrix(int M, int N){
     int** houghMatrix = (int**)malloc(sizeof(int*)*M);
     for(int i = 0; i < M; i++){
