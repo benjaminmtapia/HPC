@@ -5,6 +5,7 @@
 # include <unistd.h>
 # include <pmmintrin.h>
 # include <immintrin.h>
+# include <time.h>
 
 int* readFile(char* fileName, int M, int N);
 void writeOut(int** image, int M, int R, char* fileName);
