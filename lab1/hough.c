@@ -130,6 +130,11 @@ int main(int argc, char** argv){
     int U;
     int c;
 
+    if(argc<15){
+        printf("faltan parámetros\n");
+        exit(1);
+    }
+
     while (( (c = getopt(argc, argv, "i:o:M:N:T:R:U:")) != -1)){
         switch (c)
         {
@@ -190,7 +195,7 @@ int main(int argc, char** argv){
     parHough = umbralization(parHough,T,R,U,deltaTheta,deltaR);
     seqHough = umbralization(seqHough,T,R,U,deltaTheta,deltaR);
     printf("Tiempo Paralelo = %f segundos\nTiempo Secuencial = %f segundos\n", time_used, time_usedSeq);
-    writeOut(seqHough,T,R,Outfile);
+    write_image(parHough,Outfile,T,R);
 /*
     free(image);
     free(Infile);

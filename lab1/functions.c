@@ -6,18 +6,19 @@ Procesamiento: Se lee la imagen con fread y se almacena la data en un arreglo
 Salida: Arreglo con información de la imagen en enteros
 */
 int* readFile(char* fileName, int M, int N){
-    FILE* f = fopen(fileName,"r");
-    if(f==NULL){
-        printf("error al abrir archivo\n");
-        exit(1);
-    }
-    int imageDim = M*N;
-    
 
-    int* image = (int*)malloc(sizeof(int)*imageDim);
-    fread(image,sizeof(int),imageDim,f);
+   int f1 = open(fileName,O_RDONLY);
+   
+   if(f1==-1){
+       printf("Error al abrir archivo\n");
+       exit(-1);
+   }
+   int imageDim = M*N;
+   int* image = (int*)malloc(sizeof(int)*imageDim);
+   read(f1,image,sizeof(int)*imageDim);
+   close(f1);
 
-    fclose(f);
+
     return image;
 }
 
@@ -28,7 +29,7 @@ Salida: Matriz con los pixeles de la imagen
 
 */
 int** imageToMatrix(int* image, int M, int N){
-    int** imageOut= (int**)malloc(sizeof(int)*M);
+    int** imageOut= (int**)malloc(sizeof(int*)*M);
     int index = 0;
     for(int i = 0; i < M; i++ ){
         imageOut[i] = (int*)malloc(sizeof(int)*N);
@@ -48,13 +49,26 @@ Procesamiento: escribe la matriz de hough
 Salida: No hay salidas
 */
 void writeOut(int** image, int T, int R, char* fileName){
-    FILE* fileOut = fopen(fileName,"wb");
-    //printmatrix(image,M,R);
-    for(int i = 0; i < T; i++ ){
-            fwrite(image[i],sizeof(int),R,fileOut);    
-        
+
+   int f2 = open(fileName, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+   if(f2==-1){
+       printf("Error con el archivo de salida\n");
+       exit(-1);
+   } 
+   int imageDim = T*R;
+    int* outImage = (int*)malloc(sizeof(int)*imageDim);
+    int index = 0;
+    for(int i = 0; i < T ; i++){
+        for(int j = 0 ; j < R; j++){
+            outImage[index] = image[i][j];
+            index++;
+        }
     }
-    fclose(fileOut);
+
+    write(f2,outImage,sizeof(int)*imageDim);
+    close(f2);
+
+    free(outImage);
 }
 
 /*
@@ -108,4 +122,74 @@ int** houghMatrix(int M, int N){
         }
     }
     return houghMatrix;
+}
+
+void write_image(int **matriz, char *OUTPUT_PATH, int T, int R)
+{
+
+    int size = T * R, file, value=0;
+    int *buffer = (int *)malloc(sizeof(int) * size);
+
+    for (int i = 0; i < T; i++)
+    {
+        for (int j = 0; j < R; j++)
+        {
+            buffer[value] = (int) matriz[i][j];
+            value++;
+        }
+            
+    }
+    
+
+    file = open(OUTPUT_PATH, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
+    if (file == -1)
+    {
+       printf("Error\n");
+        exit(EXIT_FAILURE);
+    }
+   
+    write(file, buffer, size*sizeof(int));
+   
+    close(file);
+   
+    free(buffer);
+   
+
+}
+
+
+int **read_image(char *PATH_FILE, int M, int N)
+{
+
+    int size = N * M, file, value;
+    int *buffer = (int *)malloc(sizeof(int) * size), **matriz = (int **)malloc(sizeof(int *) * M);
+
+    file = open(PATH_FILE, O_RDONLY);
+    if (file == -1)
+    {
+       printf("Error");
+        exit(EXIT_FAILURE);
+    }
+
+    read(file, buffer, sizeof(int) * size);
+
+    close(file);
+
+    for (int i = 0; i < N; i++)
+    {
+        matriz[i] = (int *)malloc(sizeof(int) * N);
+    }
+
+    value = 0;
+    for (int i = 0; i < M; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            matriz[i][j] = (int)buffer[value];
+            value++;
+        }
+    }
+
+    return matriz;
 }
