@@ -12,7 +12,7 @@ Salida: Matriz de Hough con los valores resultantes.
 
 */
 int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, float* angles, float deltaR){
-    __m128 posX, posY, mcos, msin, icos, jsin, rDelta, rdistance, rindex, rCenter;
+    __m128 posX, posY, mcos, msin, icos, jsin, rDelta, rdistance, rindex, rCenter,aux;
     float center = R/2;
     rCenter = _mm_set1_ps(center);
 
@@ -38,23 +38,21 @@ int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, flo
                     msin = _mm_set_ps(sin(angles[i]),sin(angles[i+1]),sin(angles[i+2]),sin(angles[i+3]));
                     icos = _mm_mul_ps(mcos,posX);
                     jsin = _mm_mul_ps(msin,posY);
-                    rdistance = _mm_add_ps(icos,jsin);
-                    rindex = _mm_div_ps(rdistance,rDelta);
-                    rCenter = _mm_add_ps(rCenter,rindex);
+                    rdistance = _mm_add_ps(icos,jsin);  // r_j = xcos + ysin
+                    rindex = _mm_div_ps(rdistance,rDelta);// rindex = r_j/deltaR
+                    aux = _mm_add_ps(rCenter,rindex);// aux = R/2 + rindex
+                    _mm_store_ps(positions,aux);
 
-                    /*for(int k = 0; k<4; k++){
-                        float theta_angle = angles[i+k] * 180 / M_PI;
-                        printf("Distancia = %f ; Angulo = %f\n", rdistance[k], theta_angle);
-                    }*/
-
-                    _mm_store_ps(positions,rindex);
-
+                    for(int k = 0 ; k< 4; k++){
+                        if(rdistance[k]<0){
+                            positions[k]= abs( positions[k]);
+                        }
+                    }
                    
                     auxIndex[0] = (int)positions[0];
                     auxIndex[1] = (int)positions[1];
                     auxIndex[2] = (int)positions[2];
                     auxIndex[3] = (int)positions[3];
-                    // printf("%d %d %d %d", auxIndex[0],auxIndex[1],auxIndex[2], auxIndex[3]);
                     
                     houghMatrix[i][auxIndex[0]]+=1;
                     houghMatrix[i+1][auxIndex[1]]+=1;
@@ -62,9 +60,16 @@ int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, flo
                     houghMatrix[i+3][auxIndex[3]]+=1;
                     
                 }
+                int j ;
                 for(int i = T/4*4; i < T; i++){
                     float r = x* cos(angles[i]) + y* sin(angles[i]);
-                    int j = (r/deltaR);
+                    if(r<0){
+                         j = abs ( (r/deltaR) + (R/2) );
+                    }
+                    else{
+                         j = (r/deltaR) + (R/2);
+                    }
+                    
                     houghMatrix[i][j]+=1;
 
                 }
@@ -85,6 +90,7 @@ Salida: Matriz de Hough con los valores resultantes.
 
 */
 int** sequentialHough (int** image, int**houghMatrix, int M, int N,int T,int R, float* angles, float deltaR){
+    
     for(int x = 0; x < M ; x++){
         for(int y = 0; y < N; y++){
             //if is edge
@@ -93,10 +99,17 @@ int** sequentialHough (int** image, int**houghMatrix, int M, int N,int T,int R, 
                 for(int i = 0; i < T; i++){
                     float theta = angles[i];
                     float r = x* cos(theta) + y* sin(theta);
+                    int j;
+                    if(r<0){
+                        j = (int) abs( (r/deltaR) +(R/2));
+                    }
+                    else{
+                        j = (int) (r/deltaR) + (R/2);
+                    }
                     //float theta_angle = theta * 180 / M_PI;
                     //printf("Angulo = %f ; Distancia= %f\n", theta_angle,r);
-                    int j = (r/deltaR);
-                    houghMatrix[i][j]+=1;
+
+                    houghMatrix[i][j] = houghMatrix[i][j] + 1;
                 }
             }
         }
@@ -167,7 +180,7 @@ int main(int argc, char** argv){
     seqHough =  houghMatrix(T,R);
     parHough =  houghMatrix(T,R);
     clock_t startSeq = clock();
-    seqHough = sequentialHough(imageMatrix,parHough,M,N,T,R,angles,deltaR);
+    seqHough = sequentialHough(imageMatrix,seqHough,M,N,T,R,angles,deltaR);
     clock_t endSeq = clock();
     double time_usedSeq = (double)(endSeq - startSeq) / CLOCKS_PER_SEC;
     clock_t start = clock();
@@ -178,6 +191,17 @@ int main(int argc, char** argv){
     seqHough = umbralization(seqHough,T,R,U,deltaTheta,deltaR);
     printf("Tiempo Paralelo = %f segundos\nTiempo Secuencial = %f segundos\n", time_used, time_usedSeq);
     writeOut(seqHough,T,R,Outfile);
+/*
+    free(image);
+    free(Infile);
+    free(Outfile);
+    free(angles);
+
+    for(int i = 0; i < T; i++){
+        free(seqHough[i]);
+        free(parHough[i]);
+    }
+    */
     return 0;
 
 }

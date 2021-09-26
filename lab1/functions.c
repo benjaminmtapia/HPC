@@ -51,10 +51,8 @@ void writeOut(int** image, int T, int R, char* fileName){
     FILE* fileOut = fopen(fileName,"wb");
     //printmatrix(image,M,R);
     for(int i = 0; i < T; i++ ){
-        for(int j = 0; j < R; j++){
-            int aux = image[i][j] ? 255:0;
-            fwrite(&aux,1,sizeof(int),fileOut);    
-        }
+            fwrite(image[i],sizeof(int),R,fileOut);    
+        
     }
     fclose(fileOut);
 }
@@ -87,9 +85,10 @@ int** umbralization(int** houghMatrix, int T, int R, int U,float deltaTheta, flo
                 float distance = j * deltaR;
                 printf("Distancia = %f; Angulo = %f\n", distance, angle);
             }
-            else{
-                houghMatrix[i][j] = 0;
-            }
+            
+            //else{
+              //  houghMatrix[i][j] = 0;
+            //}
         }
     }
     return houghMatrix;
