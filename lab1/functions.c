@@ -77,12 +77,15 @@ Entradas: matriz hough, dimensiones T y R de Hough, Umbral U
 Procesamiento: Aplica la umbralización para la matriz de hough dejando solo pixeles blancos y negros
 Salida: Matriz de hough con umbralización
 */
-int** umbralization(int** houghMatrix, int T, int R, int U){
+int** umbralization(int** houghMatrix, int T, int R, int U,float deltaTheta, float deltaR){
 
     for(int i = 0; i < T; i++){
         for(int j = 0; j < R; j++){
             if(houghMatrix[i][j]>U){
                 houghMatrix[i][j] = 255;
+                float angle =  (i * deltaTheta) * 180 / M_PI;
+                float distance = j * deltaR;
+                printf("Distancia = %f; Angulo = %f\n", distance, angle);
             }
             else{
                 houghMatrix[i][j] = 0;

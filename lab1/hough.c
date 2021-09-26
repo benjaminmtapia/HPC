@@ -1,5 +1,5 @@
 #include "functions.h"
-#include <math.h>
+
 #include <immintrin.h>
 
 /*
@@ -43,6 +43,11 @@ int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, flo
                     rindex = _mm_div_ps(rdistance,rDelta);
                     rCenter = _mm_add_ps(rCenter,rindex);
 
+                    /*for(int k = 0; k<4; k++){
+                        float theta_angle = angles[i+k] * 180 / M_PI;
+                        printf("Distancia = %f ; Angulo = %f\n", rdistance[k], theta_angle);
+                    }*/
+
                     _mm_store_ps(positions,rindex);
 
                    
@@ -83,11 +88,11 @@ int** sequentialHough (int** image, int**houghMatrix, int M, int N,int T,int R, 
                 for(int i = 0; i < T; i++){
                     float theta = angles[i];
                     float r = x* cos(theta) + y* sin(theta);
+                    //float theta_angle = theta * 180 / M_PI;
+                    //printf("Angulo = %f ; Distancia= %f\n", theta_angle,r);
                     int j = (r/deltaR);
-                    //printf("%d ", j);
                     houghMatrix[i][j]+=1;
                 }
-                //printf("\n");
             }
         }
     }
@@ -164,10 +169,10 @@ int main(int argc, char** argv){
     parHough = parallelHough(imageMatrix,parHough,M,N,T,R,angles,deltaR);
     clock_t end = clock();
     double time_used = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("Tiempo Paralelo= %f segundos\n Tiempo Secuencial = %f segundos\n", time_used, time_usedSeq);
-    parHough = umbralization(parHough,T,R,U);
-    seqHough = umbralization(seqHough,T,R,U);
-    writeOut(parHough,T,R,Outfile);
+    parHough = umbralization(parHough,T,R,U,deltaTheta,deltaR);
+    seqHough = umbralization(seqHough,T,R,U,deltaTheta,deltaR);
+    printf("Tiempo Paralelo= %f segundos\nTiempo Secuencial = %f segundos\n", time_used, time_usedSeq);
+    writeOut(seqHough,T,R,Outfile);
     return 0;
 
 }
