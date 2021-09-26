@@ -23,7 +23,6 @@ int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, flo
     rDelta = _mm_set1_ps((float) deltaR);
     float* positions = (float*)malloc(sizeof(float)*4);
     int* auxIndex = (int*) malloc(sizeof(int)*4);
-
     for(int x = 0; x < M ; x++){
         for(int y = 0; y < N; y++){
             //if is edge
@@ -33,8 +32,8 @@ int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, flo
                 posX = _mm_set1_ps(u);
                 posY = _mm_set1_ps(v);
                 //cargar los registros de posicion
-
-                for(int i = 0; i < T; i+=4){
+               
+                for(int i = 0; i < T/4*4; i+=4){
                     mcos = _mm_set_ps(cos(angles[i]),cos(angles[i+1]),cos(angles[i+2]),cos(angles[i+3]));
                     msin = _mm_set_ps(sin(angles[i]),sin(angles[i+1]),sin(angles[i+2]),sin(angles[i+3]));
                     icos = _mm_mul_ps(mcos,posX);
@@ -62,6 +61,12 @@ int** parallelHough(int** image, int**houghMatrix, int M,int N,int T, int R, flo
                     houghMatrix[i+2][auxIndex[2]]+=1;
                     houghMatrix[i+3][auxIndex[3]]+=1;
                     
+                }
+                for(int i = T/4*4; i < T; i++){
+                    float r = x* cos(angles[i]) + y* sin(angles[i]);
+                    int j = (r/deltaR);
+                    houghMatrix[i][j]+=1;
+
                 }
             }
         }
@@ -171,7 +176,7 @@ int main(int argc, char** argv){
     double time_used = (double)(end - start) / CLOCKS_PER_SEC;
     parHough = umbralization(parHough,T,R,U,deltaTheta,deltaR);
     seqHough = umbralization(seqHough,T,R,U,deltaTheta,deltaR);
-    printf("Tiempo Paralelo= %f segundos\nTiempo Secuencial = %f segundos\n", time_used, time_usedSeq);
+    printf("Tiempo Paralelo = %f segundos\nTiempo Secuencial = %f segundos\n", time_used, time_usedSeq);
     writeOut(seqHough,T,R,Outfile);
     return 0;
 

@@ -24,7 +24,6 @@ clean:
 
 
 run:
-	./hough -i simplehough1-256x256.raw -o hough1.raw -M 256 -N 256 -T 180 -R 1000 -U 1
-	
+	./hough -i simplehough1-256x256.raw -o hough1.raw -M 256 -N 256 -T 180 -R 1000 -U 3
 	
 sinclude $(depends)
