@@ -1,12 +1,12 @@
 CC= gcc
-CFLAGS = -Wall -msse3
+CFLAGS = -Wall -fopenmp
 
 depends = .depends
 
 headers = functions.h
-source = $(headers:.h=.c) hough.c
+source = $(headers:.h=.c) bomb.c
 objects = $(source:.c=.o)
-out = hough
+out = bomb
 
 build: $(out)
 
@@ -25,9 +25,7 @@ clean:
 
 run:
 
-	./hough -i simplehough1-256x256.raw -o hough1.raw -M 256 -N 256 -T 511 -R 513 -U 1
-	./hough -i simplehough2-608x402.raw -o hough2.raw -M 608 -N 402 -T 511 -R 513 -U 180
-	./hough -i circuit1-280x272.raw -o hough3.raw -M 280 -N 272 -T 511 -R 513 -U 12
+	./bomb -t 4 -N 35 -i input.txt -o output.txt -D
 
 
 	

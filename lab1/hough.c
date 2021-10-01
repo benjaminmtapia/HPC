@@ -3,6 +3,12 @@
 #include <immintrin.h>
 
 /*
+Laboratorio 1 High Performance Computing
+Benjamín Muñoz Tapia, 19818205-2
+Vicente Vega Toro, 19501147-8
+*/
+
+/*
 Entradas: matriz con la imagen, matriz de hough a llenar, dimensiones M Y N de la imagen
           dimensiones T y R de la matriz de hough, arreglo flotante con ángulos, delta R
 Procesamiento: Se crean los distintos registros necesarios. Al momento de aplicar el algoritmo se utilizan registros con
@@ -106,8 +112,7 @@ int** sequentialHough (int** image, int**houghMatrix, int M, int N,int T,int R, 
                     else{
                         j = (int) (r/deltaR) + (R/2);
                     }
-                    //float theta_angle = theta * 180 / M_PI;
-                    //printf("Angulo = %f ; Distancia= %f\n", theta_angle,r);
+
 
                     houghMatrix[i][j] = houghMatrix[i][j] + 1;
                 }
@@ -176,7 +181,7 @@ int main(int argc, char** argv){
     imageMatrix = imageToMatrix(image,M, N);
     
     float deltaTheta = M_PI/(T);
-    float deltaR = sqrt(N*N + M*M)/(R);
+    float deltaR = 2*sqrt(N*N + M*M)/(R);
     float* angles = getAngles(deltaTheta,T);
 
     int** seqHough;
@@ -195,7 +200,7 @@ int main(int argc, char** argv){
     parHough = umbralization(parHough,T,R,U,deltaTheta,deltaR);
     seqHough = umbralization(seqHough,T,R,U,deltaTheta,deltaR);
     printf("Tiempo Paralelo = %f segundos\nTiempo Secuencial = %f segundos\n", time_used, time_usedSeq);
-    write_image(parHough,Outfile,T,R);
+    writeOut(parHough,T,R,Outfile);
 /*
     free(image);
     free(Infile);

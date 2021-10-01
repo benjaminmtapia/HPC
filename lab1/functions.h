@@ -17,6 +17,3 @@ float* getDistances(float deltaR,int R);
 float* getAngles(float deltaTheta,int M);
 int** umbralization(int** houghMatrix, int M, int R, int U,float deltaTheta, float deltaR);
 int** houghMatrix(int M, int N);
-void write_image(int **matriz, char *OUTPUT_PATH, int T, int R);
-int **read_image(char *PATH_FILE, int M, int N);
-
