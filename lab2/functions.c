@@ -5,6 +5,17 @@ Entradas: Nombre de la imagen, dimensiones que reciben por consola
 Procesamiento: Se lee la imagen con fread y se almacena la data en un arreglo
 Salida: Arreglo con información de la imagen en enteros
 */
+
+float searchMax(int N, float *energy){
+    float max = 0;
+    for(int i =0 ; i<N; i++){
+        if(energy[i]>max){
+            max = energy[i];
+        }
+    }
+    return max;
+}
+
 void readFile(char* fileName, struct parameters* parameters){
 
     FILE* f = fopen(fileName,"r");
@@ -34,4 +45,13 @@ void readFile(char* fileName, struct parameters* parameters){
     }
     */
   
+}
+
+void writeFile(char* fileName, int N, float* Energy){
+    float max = searchMax(N,Energy);
+    FILE* out = fopen(fileName,"w");
+    fprintf(out,"%f\n",max);
+    for(int i = 0; i < N; i++){
+        fprintf(out,"%d %f\n",i,Energy[i]);
+    }
 }

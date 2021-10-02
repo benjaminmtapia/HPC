@@ -1,5 +1,5 @@
 #include "functions.h"
-#include <omp.h>
+
 
 /*
 Laboratorio 2 High Performance Computing
@@ -7,9 +7,7 @@ Benjamín Muñoz Tapia, 19818205-2
 Vicente Vega Toro, 19501147-8
 */
 
-
-
-
+int D;
 
 
 void sequential(struct parameters* parameters, int threads, int N, float* material){
@@ -30,9 +28,6 @@ void sequential(struct parameters* parameters, int threads, int N, float* materi
         }
 
     }
-    for(int i = 0 ; i<N;i++){
-        printf("%d %f\n",i,material[i]);
-    }
 
 }
 
@@ -40,44 +35,40 @@ void simulate(struct parameters* parameters, int threads, int N, float* material
 
     
     float MIN_ENERGY = pow(10,-3)/N;
-    float* privateEnergy = (float*)malloc(sizeof(float)*N);
-    for(int i = 0; i < N ; i++){
-        privateEnergy[i] = 0;
-    }
+    
     float impact = 0;
     float Ei = 0;
-    int i = 0;
-    #pragma omp parallel num_threads(threads) shared(material) firstprivate(privateEnergy, impact,Ei,i)
+    int position = 0;
+
+    #pragma omp parallel num_threads(threads) firstprivate(Ei,position, impact)
     {
-        #pragma omp for
-        for(int j=0 ; j < parameters->particleNumber;j++){
-
-            impact = parameters->particleImpacts[j];
-
-
-            for(i = 0; i < N; i++){
-                //printf("Hebra %d, i = %d, j = %d\n",omp_get_thread_num(),i,j);
-                Ei =  (pow(10,3)*impact) / (N*sqrt(abs(j-i)+1));
-                if(Ei>= MIN_ENERGY){
-                    privateEnergy[i] += Ei;
-                }
-                
-            }
-        
-
+     
+        float* localEnergy = (float*)malloc(sizeof(float)*N);
+        for(int i = 0; i < N ; i++){
+            localEnergy[i] = 0;
         }
+        #pragma omp for
+        for(int j = 0; j<parameters->particleNumber;j++){
+            impact = parameters->particleImpacts[j];
+            position = parameters->particleIds[j];
+            for(int i = 0; i < N ; i++){
+                Ei = localEnergy[i];
+                Ei = Ei + ( (pow(10,3)*impact) / (N*sqrt(abs(position-i)+1)));
+                if( Ei>= MIN_ENERGY){
+                    localEnergy[i] = Ei;
+                    }
 
-            #pragma omp critical
-            {
-                for(int k = 0; k<N;k++){
-                    material[k] += privateEnergy[k];
                 }
+        }
+        #pragma omp critical
+        {
+            for(int i = 0; i <N; i++){
+                material[i] += localEnergy[i];
             }
-               
-    }
-    for(int i = 0 ; i<N;i++){
-        printf("%d %f\n",i,material[i]);
-    }
+        }
+    }    
+    //
+    //niceprint(N,material);
 
 }
 
@@ -87,14 +78,13 @@ int main(int argc, char** argv){
     int N = 0;
     char* i = (char*)malloc(sizeof(char));
     char* o = (char*)malloc(sizeof(char));
-    int D = 0;
     int c;
     if(argc<10){
         printf("faltan parámetros\n");
         exit(1);
     }
 
-    while (( (c = getopt(argc, argv, "t:N:i:o:D")) != -1)){
+    while (( (c = getopt(argc, argv, "t:N:i:o:D:")) != -1)){
         switch (c)
         {
         case 't':
@@ -114,7 +104,11 @@ int main(int argc, char** argv){
             break;
 
         case 'D':
-            D = 1;
+            D = atof(optarg);
+            if(D!=0 && D!=1){
+                printf("parametros incorrectos para D, solo puede ser 0 o 1\n");
+                exit(1);
+            }
             break;
         }
     }
@@ -128,8 +122,17 @@ int main(int argc, char** argv){
     
     struct parameters* parameters = (struct parameters*)malloc(sizeof(struct parameters));
     readFile(i,parameters);
-    sequential(parameters,threads,N,material);
-    //simulate(parameters,threads,N,material);
+    clock_t start = clock();
+    simulate(parameters,threads,N,material);
+    clock_t end = clock();
+    double time = (double)(end-start)/CLOCKS_PER_SEC;
+    float* energy = (float*) malloc(sizeof(float)*N);
+    for(int i = 0; i < N; i++){
+        energy[i] = material[i];
+    }
+    niceprint(N,energy);
+    printf("execution time: %f secs\n",time);
+    writeFile(o,N,energy);
     return 0;
 
 }

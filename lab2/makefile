@@ -1,8 +1,9 @@
 CC= gcc
-CFLAGS = -Wall -fopenmp
+CFLAGS = -Wall -fopenmp -lm
 
 depends = .depends
 
+library = -lniceprint
 headers = functions.h
 source = $(headers:.h=.c) bomb.c
 objects = $(source:.c=.o)
@@ -11,9 +12,9 @@ out = bomb
 build: $(out)
 
 $(out) : $(objects)
-	$(CC)  -o $@ $^ $(CFLAGS) -lm  
+	$(CC)  -o $@ $^ $(library) $(CFLAGS) -L .  
 $(objects) :
-	$(CC)  -c -o $@ $*.c $(CFLAGS) -lm 
+	$(CC)  -c -o $@ $*.c $(CFLAGS) $(library) -lm 
 $(depends): $(source) $(headers)
 	@$(CC) -MM $(source) > $@
 
@@ -25,7 +26,7 @@ clean:
 
 run:
 
-	./bomb -t 4 -N 35 -i input.txt -o output.txt -D
+	./bomb -t 4 -N 35 -i test1_35.txt -o output1.txt -D 0
 
 
 	
