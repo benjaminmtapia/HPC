@@ -17,4 +17,4 @@ typedef struct parameters{
 
 void readFile(char* fileName, struct parameters* parameters);
 void writeFile(char* fileName, int N, float* Energy);
-float searchMax(int N, float *energy);
+float searchMax(int N, float *energy, int* index);

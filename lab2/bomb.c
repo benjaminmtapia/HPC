@@ -67,8 +67,6 @@ void simulate(struct parameters* parameters, int threads, int N, float* material
             }
         }
     }    
-    //
-    //niceprint(N,material);
 
 }
 
@@ -130,6 +128,7 @@ int main(int argc, char** argv){
     for(int i = 0; i < N; i++){
         energy[i] = material[i];
     }
+    if(D==1)
     niceprint(N,energy);
     printf("execution time: %f secs\n",time);
     writeFile(o,N,energy);

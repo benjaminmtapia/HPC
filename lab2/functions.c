@@ -6,11 +6,12 @@ Procesamiento: Se lee la imagen con fread y se almacena la data en un arreglo
 Salida: Arreglo con información de la imagen en enteros
 */
 
-float searchMax(int N, float *energy){
+float searchMax(int N, float *energy, int* index){
     float max = 0;
     for(int i =0 ; i<N; i++){
         if(energy[i]>max){
             max = energy[i];
+            *index = i;
         }
     }
     return max;
@@ -19,6 +20,10 @@ float searchMax(int N, float *energy){
 void readFile(char* fileName, struct parameters* parameters){
 
     FILE* f = fopen(fileName,"r");
+    if(f == NULL){
+        printf("File doesn't exist\n");
+        exit(1);
+    }
     char* particleN = (char*)malloc(sizeof(char));
     char buffer[255];
 
@@ -48,9 +53,10 @@ void readFile(char* fileName, struct parameters* parameters){
 }
 
 void writeFile(char* fileName, int N, float* Energy){
-    float max = searchMax(N,Energy);
+    int maxIndex = 0;
+    float max = searchMax(N,Energy,&maxIndex);
     FILE* out = fopen(fileName,"w");
-    fprintf(out,"%f\n",max);
+    fprintf(out,"%d %f\n",maxIndex,max);
     for(int i = 0; i < N; i++){
         fprintf(out,"%d %f\n",i,Energy[i]);
     }
