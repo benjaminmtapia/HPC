@@ -177,6 +177,8 @@ int main(int argc, char** argv){
 
     int* image;
     image =readFile(Infile, M ,N);
+    for(int i = 0; i < M*N;i++)
+    	printf("%d ",image[i]);
     int ** imageMatrix;
     imageMatrix = imageToMatrix(image,M, N);
     
@@ -186,7 +188,7 @@ int main(int argc, char** argv){
 
     int** seqHough;
     int** parHough;
-    
+    /*
     seqHough =  houghMatrix(T,R);
     parHough =  houghMatrix(T,R);
     clock_t startSeq = clock();
@@ -201,7 +203,9 @@ int main(int argc, char** argv){
     seqHough = umbralization(seqHough,T,R,U,deltaTheta,deltaR);
     printf("Tiempo Paralelo = %f segundos\nTiempo Secuencial = %f segundos\n", time_used, time_usedSeq);
     writeOut(parHough,T,R,Outfile);
+    */
 /*
+
     free(image);
     free(Infile);
     free(Outfile);

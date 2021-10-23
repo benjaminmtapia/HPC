@@ -24,7 +24,7 @@ clean:
 
 run:
 
-	./hist -i img1lab3-1151x976.raw -m 1151 -n 976 -o out.txt -t 123 -d 1
+	./hist -i img1lab3-1151x976.raw -m 1151 -n 976 -o out.txt -t 256 -d 1
 
 	
 sinclude $(depends)

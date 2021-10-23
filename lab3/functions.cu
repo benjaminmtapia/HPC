@@ -1,6 +1,6 @@
 #include "functions.h"
 
-__host__ void histogramming(int* A, int M, int N, int*H){
+__host__ void histogramming(unsigned short int* A, int M, int N, int*H){
     int imageSize = M*N;
     for(int i = 0; i<imageSize;i++){
        H[A[i]]++;
@@ -9,15 +9,15 @@ __host__ void histogramming(int* A, int M, int N, int*H){
     
 }
 
-__host__ int *readFile(char* filename, int M, int N){
+__host__ unsigned short int *readFile(char* filename, int M, int N){
     int imageSize = M*N;
-    int *image = (int*)malloc(sizeof(int)*imageSize);
+    unsigned short int *image = (unsigned short int*)malloc(sizeof(unsigned short int)*imageSize);
     FILE *f = fopen(filename,"rb");
     if(f==NULL){
         printf("Error opening file");
         exit(1);
     }
-    fread(image,sizeof(int),imageSize,f);
+    fread(image,sizeof(unsigned short int),imageSize,f);
     fclose(f);
    return image; 
 }
