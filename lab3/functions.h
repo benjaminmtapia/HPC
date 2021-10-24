@@ -6,4 +6,4 @@
 
 __host__ void histogramming(unsigned short int * A, int M, int N, int*H);
 __host__ unsigned short int *readFile(char* filename, int M, int N);
-__host__ void writeFile(char* filename, int* hist, int N);
+__host__ void writeFile(char* filename, int* hist, int* hist2, int N);

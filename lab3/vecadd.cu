@@ -21,9 +21,9 @@ int main()
     size_t size = N * sizeof(float);
 
     // Allocate input vectors h_A and h_B in host memory
-    float* h_A = (float*)malloc(sizeof(float)*N);
-    float* h_B = (float*)malloc(sizeof(float)*N);
-    float* h_C = (float*)malloc(sizeof(float)*N);
+    float* h_A = (float*)malloc(size);
+    float* h_B = (float*)malloc(size);
+    float* h_C = (float*)malloc(size);
 
     // Initialize input vectors
     for(int i = 0; i < N; i++){

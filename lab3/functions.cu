@@ -22,10 +22,10 @@ __host__ unsigned short int *readFile(char* filename, int M, int N){
    return image; 
 }
 
-__host__ void writeFile(char* filename, int* hist, int N){
-    FILE* out = fopen(filename,"w");
+__host__ void writeFile(char* filename, int* hist, int* hist2, int N){
+    FILE* out = fopen(filename,"wb");
     for(int i = 0; i<N; i++){
-        fprintf(out,"%d\n",hist[i]);
+        fprintf(out,"%d %d\n",hist[i],hist2[i]);
     }
     fclose(out);
 }
