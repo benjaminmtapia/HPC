@@ -6,7 +6,7 @@
 #include <omp.h>
 #include <math.h>
 
-extern void niceprint(int N, float *Energy);
+extern void niceprint(int N ,float *Energy, float Maximum);
 
 typedef struct parameters{
     int particleNumber;

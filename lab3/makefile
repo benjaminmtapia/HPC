@@ -12,7 +12,7 @@ build: $(out)
 $(out) : $(objects)
 	$(CC)  -o $@ $^ 
 $(objects) :
-	$(CC)  -c -o $@ $*.cu
+	$(CC)  -c $@ $*.cu -arch all-major
 $(depends): $(source) $(headers)
 	@$(CC) -MM $(source) > $@
 
@@ -24,7 +24,7 @@ clean:
 
 run:
 
-	./hist -i img1lab3-1151x976.raw -m 1151 -n 976 -o out.txt -t 256 -d 1
+	./hist -i img1lab3-1151x976.raw -m 1151 -n 976 -o out.txt -t 200 -d 0
 
 	
 sinclude $(depends)

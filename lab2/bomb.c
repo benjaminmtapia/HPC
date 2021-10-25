@@ -128,8 +128,11 @@ int main(int argc, char** argv){
     for(int i = 0; i < N; i++){
         energy[i] = material[i];
     }
+    int maxIndex = 0;
+    printf("hola\n");
+    float max = searchMax(N,material,&maxIndex);
     if(D==1)
-    niceprint(N,energy);
+    niceprint(N,energy,max);
     printf("execution time: %f secs\n",time);
     writeFile(o,N,energy);
     return 0;
